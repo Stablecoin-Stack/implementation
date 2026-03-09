@@ -159,6 +159,122 @@
             color: #fff;
         }
 
+        /* ─── BURGER ─── */
+        .burger {
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            width: 40px;
+            height: 40px;
+            gap: 5px;
+            cursor: pointer;
+            background: none;
+            border: none;
+            padding: 4px;
+            border-radius: 4px;
+            transition: background 0.15s;
+        }
+
+        .burger:hover {
+            background: var(--light);
+        }
+
+        .burger span {
+            display: block;
+            width: 22px;
+            height: 1.5px;
+            background: var(--blue);
+            border-radius: 2px;
+            transition: transform 0.25s ease, opacity 0.2s ease, width 0.25s ease;
+            transform-origin: center;
+        }
+
+        .burger.open span:nth-child(1) {
+            transform: translateY(6.5px) rotate(45deg);
+        }
+
+        .burger.open span:nth-child(2) {
+            opacity: 0;
+            width: 0;
+        }
+
+        .burger.open span:nth-child(3) {
+            transform: translateY(-6.5px) rotate(-45deg);
+        }
+
+        /* ─── MOBILE DRAWER ─── */
+        .mobile-menu {
+            display: none;
+            position: fixed;
+            top: 68px;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--white);
+            z-index: 49;
+            flex-direction: column;
+            border-top: 1px solid var(--border);
+            overflow-y: auto;
+            opacity: 0;
+            transform: translateY(-8px);
+            transition: opacity 0.22s ease, transform 0.22s ease;
+            pointer-events: none;
+        }
+
+        .mobile-menu.open {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: all;
+        }
+
+        .mobile-menu ul {
+            list-style: none;
+            padding: 12px 0;
+            flex: 1;
+        }
+
+        .mobile-menu ul li a {
+            display: block;
+            padding: 16px 28px;
+            font-size: 18px;
+            font-weight: 400;
+            color: var(--blue);
+            text-decoration: none;
+            border-bottom: 1px solid var(--border);
+            transition: background 0.12s, color 0.12s;
+        }
+
+        .mobile-menu ul li:last-child a {
+            border-bottom: none;
+        }
+
+        .mobile-menu ul li a:hover {
+            background: var(--light);
+            color: var(--teal);
+        }
+
+        .mobile-menu .mobile-donate {
+            margin: 20px 28px 32px;
+        }
+
+        .mobile-menu .mobile-donate a {
+            display: block;
+            text-align: center;
+            background: var(--teal);
+            color: #fff;
+            font-size: 16px;
+            font-weight: 500;
+            padding: 14px;
+            border-radius: 4px;
+            text-decoration: none;
+            transition: opacity 0.15s;
+        }
+
+        .mobile-menu .mobile-donate a:hover {
+            opacity: 0.88;
+        }
+
         /* ─── HERO ─── */
         .hero {
             background: var(--blue);
@@ -736,6 +852,14 @@
             .nav-links {
                 display: none;
             }
+
+            .burger {
+                display: flex;
+            }
+
+            .mobile-menu {
+                display: flex;
+            }
         }
 
         @media (max-width: 600px) {
@@ -790,20 +914,39 @@
                     </svg>
                     <span class="logo-wordmark">
                         Stablecoin Stack
-                        <span class="pipe">|</span>
-                        <span class="sub">Reference Implementation</span>
+                        < !-- <span class="pipe">|
+                    </span>--><img src="https://specifications.stablecoinstack.org/img/logo-white-bg-512.png"
+                        alt="Stablecoin Stack logo">
+                    <span class="sub">Reference Implementation</span>
                     </span>
                 </a>
                 <ul class="nav-links">
                     <li><a href="https://stablecoinstack.org">Foundation</a></li>
                     <li><a href="https://specifications.stablecoinstack.org">Specifications</a></li>
                     <li><a href="https://members.stablecoinstack.org/">Members</a></li>
-                    <li><a href="https://stablecoinstack.org/contribute">Contribute</a></li>
+                    <li><a href="https://github.com/Stablecoin-Stack/specs/blob/main/CONTRIBUTING.md">Contribute</a>
+                    </li>
                     <li><a href="https://stablecoinstack.org/donate" class="donate">Donate</a></li>
                 </ul>
+                <button class="burger" id="burger" aria-label="Open menu" aria-expanded="false">
+                    <span></span><span></span><span></span>
+                </button>
             </div>
         </div>
     </nav>
+
+    <!-- MOBILE DRAWER -->
+    <div class="mobile-menu" id="mobileMenu" role="dialog" aria-label="Navigation">
+        <ul>
+            <li><a href="https://stablecoinstack.org">Foundation</a></li>
+            <li><a href="https://specifications.stablecoinstack.org">Specifications</a></li>
+            <li><a href="https://members.stablecoinstack.org/">Members</a></li>
+            <li><a href="https://github.com/Stablecoin-Stack/specs/blob/main/CONTRIBUTING.md">Contribute</a></li>
+        </ul>
+        <div class="mobile-donate">
+            <a href="https://stablecoinstack.org/donate">Donate</a>
+        </div>
+    </div>
 
     <!-- HERO -->
     <section class="hero">
@@ -1031,7 +1174,7 @@
                     <span class="ed">Who shapes the standard and how to join them.</span>
                     <span class="ea">↗</span>
                 </a>
-                <a href="https://stablecoinstack.org/contribute" class="eco-link">
+                <a href="https://github.com/Stablecoin-Stack/specs/blob/main/CONTRIBUTING.md" class="eco-link">
                     <span class="el">Contribute</span>
                     <span class="eu">stablecoinstack.org/contribute</span>
                     <span class="ed">Help build and improve the standard.</span>
@@ -1056,7 +1199,7 @@
                     <a href="https://stablecoinstack.org">Foundation</a>
                     <a href="https://specifications.stablecoinstack.org">Specifications</a>
                     <a href="https://members.stablecoinstack.org/">Members</a>
-                    <a href="https://stablecoinstack.org/contribute">Contribute</a>
+                    <a href="https://github.com/Stablecoin-Stack/specs/blob/main/CONTRIBUTING.md">Contribute</a>
                     <a href="https://stablecoinstack.org/donate">Donate</a>
                 </div>
                 <span class="footer-promise">Open standards. Neutral governance. Real-world adoption.</span>
@@ -1064,6 +1207,27 @@
         </div>
     </footer>
 
+    <script>
+        const burger = document.getElementById('burger');
+        const menu = document.getElementById('mobileMenu');
+
+        burger.addEventListener('click', () => {
+            const isOpen = menu.classList.toggle('open');
+            burger.classList.toggle('open', isOpen);
+            burger.setAttribute('aria-expanded', isOpen);
+            document.body.style.overflow = isOpen ? 'hidden' : '';
+        });
+
+        // Close when a link is tapped
+        menu.querySelectorAll('a').forEach(a => {
+            a.addEventListener('click', () => {
+                menu.classList.remove('open');
+                burger.classList.remove('open');
+                burger.setAttribute('aria-expanded', false);
+                document.body.style.overflow = '';
+            });
+        });
+    </script>
 </body>
 
 </html>

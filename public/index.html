@@ -1,0 +1,1070 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Stablecoin Stack — Reference Implementation</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600&family=Inter:wght@300;400;500&display=swap"
+        rel="stylesheet" />
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --blue: #0B1F33;
+            --white: #FFFFFF;
+            --gray: #6B7280;
+            --teal: #1FA3A3;
+            --light: #F4F6F8;
+            --border: #D9DFE6;
+            --sub: #374151;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background: var(--white);
+            color: var(--blue);
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .container {
+            max-width: 1140px;
+            margin: 0 auto;
+            padding: 0 48px;
+        }
+
+        /* ─── TOPBAR ─── */
+        .topbar {
+            background: var(--blue);
+            font-size: 12px;
+            padding: 8px 0;
+            letter-spacing: 0.02em;
+        }
+
+        .topbar .container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .topbar span {
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        .topbar-links {
+            display: flex;
+            gap: 28px;
+        }
+
+        .topbar-links a {
+            color: rgba(255, 255, 255, 0.5);
+            text-decoration: none;
+            transition: color 0.15s;
+        }
+
+        .topbar-links a:hover {
+            color: #fff;
+        }
+
+        /* ─── NAV ─── */
+        nav {
+            background: var(--white);
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+
+        .nav-inner {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 68px;
+        }
+
+        .nav-logo {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            text-decoration: none;
+        }
+
+        .logo-icon {
+            width: 32px;
+            height: 32px;
+            flex-shrink: 0;
+        }
+
+        .logo-wordmark {
+            font-family: 'IBM Plex Sans', sans-serif;
+            font-weight: 600;
+            font-size: 15px;
+            color: var(--blue);
+        }
+
+        .logo-wordmark .pipe {
+            color: var(--border);
+            margin: 0 10px;
+            font-weight: 300;
+        }
+
+        .logo-wordmark .sub {
+            font-weight: 400;
+            color: var(--gray);
+            font-size: 13px;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 32px;
+            list-style: none;
+        }
+
+        .nav-links a {
+            font-size: 14px;
+            color: var(--sub);
+            text-decoration: none;
+            transition: color 0.15s;
+        }
+
+        .nav-links a:hover {
+            color: var(--teal);
+        }
+
+        .nav-links .donate {
+            color: var(--teal);
+            border: 1.5px solid var(--teal);
+            padding: 7px 20px;
+            border-radius: 4px;
+            font-size: 13px;
+            font-weight: 500;
+            transition: background 0.15s, color 0.15s;
+        }
+
+        .nav-links .donate:hover {
+            background: var(--teal);
+            color: #fff;
+        }
+
+        /* ─── HERO ─── */
+        .hero {
+            background: var(--blue);
+            color: var(--white);
+            padding: 100px 0 90px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+            background-size: 72px 72px;
+            pointer-events: none;
+        }
+
+        .hero .container {
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero-kicker {
+            font-family: 'IBM Plex Sans', sans-serif;
+            font-size: 13px;
+            font-weight: 500;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--teal);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 36px;
+        }
+
+        .hero-kicker::before {
+            content: '';
+            width: 24px;
+            height: 1px;
+            background: var(--teal);
+        }
+
+        .hero-title {
+            font-family: 'IBM Plex Sans', sans-serif;
+            font-weight: 300;
+            font-size: clamp(52px, 8vw, 96px);
+            line-height: 1.0;
+            letter-spacing: -0.03em;
+            max-width: 900px;
+            margin-bottom: 40px;
+            animation: fadeUp 0.6s ease both;
+        }
+
+        .hero-title strong {
+            font-weight: 600;
+            display: block;
+        }
+
+        .hero-body {
+            font-size: clamp(18px, 2vw, 22px);
+            font-weight: 300;
+            color: rgba(255, 255, 255, 0.58);
+            max-width: 600px;
+            line-height: 1.6;
+            margin-bottom: 56px;
+            animation: fadeUp 0.6s 0.1s ease both;
+        }
+
+        .hero-meta {
+            display: flex;
+            align-items: center;
+            gap: 48px;
+            flex-wrap: wrap;
+            padding-top: 48px;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            animation: fadeUp 0.6s 0.15s ease both;
+        }
+
+        .hero-meta-item .num {
+            font-family: 'IBM Plex Sans', sans-serif;
+            font-size: 32px;
+            font-weight: 300;
+            color: #fff;
+            display: block;
+            line-height: 1;
+            margin-bottom: 6px;
+        }
+
+        .hero-meta-item .lbl {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.35);
+            letter-spacing: 0.04em;
+        }
+
+        .hero-meta-sep {
+            width: 1px;
+            height: 44px;
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(14px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* ─── STATUS STRIP ─── */
+        .status-strip {
+            background: var(--light);
+            border-bottom: 1px solid var(--border);
+            padding: 18px 0;
+        }
+
+        .status-inner {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--teal);
+            flex-shrink: 0;
+        }
+
+        .status-inner span {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--blue);
+        }
+
+        .status-sep {
+            width: 1px;
+            height: 16px;
+            background: var(--border);
+        }
+
+        .status-inner p {
+            font-size: 13px;
+            color: var(--gray);
+        }
+
+        .status-inner a {
+            color: var(--teal);
+            text-decoration: none;
+        }
+
+        .status-inner a:hover {
+            text-decoration: underline;
+        }
+
+        /* ─── PATHS ─── */
+        .paths {
+            padding: 100px 0;
+        }
+
+        .paths-heading {
+            margin-bottom: 64px;
+        }
+
+        .section-kicker {
+            font-family: 'IBM Plex Sans', sans-serif;
+            font-size: 12px;
+            font-weight: 500;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--teal);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .section-kicker::before {
+            content: '';
+            width: 20px;
+            height: 1px;
+            background: var(--teal);
+        }
+
+        .paths-heading h2 {
+            font-family: 'IBM Plex Sans', sans-serif;
+            font-weight: 300;
+            font-size: clamp(40px, 6vw, 72px);
+            line-height: 1.05;
+            letter-spacing: -0.025em;
+            color: var(--blue);
+            margin-bottom: 20px;
+        }
+
+        .paths-heading h2 strong {
+            font-weight: 600;
+        }
+
+        .paths-heading p {
+            font-size: clamp(17px, 1.8vw, 20px);
+            color: var(--gray);
+            max-width: 520px;
+            line-height: 1.6;
+        }
+
+        .paths-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        .path-card {
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 44px 36px;
+            display: flex;
+            flex-direction: column;
+            text-decoration: none;
+            color: inherit;
+            background: var(--white);
+            transition: border-color 0.2s, box-shadow 0.2s, transform 0.18s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .path-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--blue);
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.25s ease;
+        }
+
+        .path-card:hover {
+            border-color: rgba(11, 31, 51, 0.22);
+            box-shadow: 0 8px 32px rgba(11, 31, 51, 0.08);
+            transform: translateY(-3px);
+        }
+
+        .path-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .path-num {
+            font-family: 'IBM Plex Sans', sans-serif;
+            font-size: 11px;
+            font-weight: 500;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--gray);
+            margin-bottom: 28px;
+        }
+
+        .path-icon-box {
+            width: 48px;
+            height: 48px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            display: grid;
+            place-items: center;
+            margin-bottom: 28px;
+            background: var(--light);
+        }
+
+        .path-icon-box svg {
+            width: 22px;
+            height: 22px;
+            stroke: var(--blue);
+            fill: none;
+            stroke-width: 1.5;
+        }
+
+        .path-title {
+            font-family: 'IBM Plex Sans', sans-serif;
+            font-size: clamp(28px, 3vw, 40px);
+            font-weight: 600;
+            letter-spacing: -0.02em;
+            color: var(--blue);
+            margin-bottom: 14px;
+            line-height: 1.1;
+        }
+
+        .path-who {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--teal);
+            margin-bottom: 16px;
+            letter-spacing: 0.01em;
+        }
+
+        .path-desc {
+            font-size: 15px;
+            color: var(--gray);
+            line-height: 1.65;
+            margin-bottom: 32px;
+            flex: 1;
+        }
+
+        .path-list {
+            list-style: none;
+            margin-bottom: 36px;
+        }
+
+        .path-list li {
+            font-size: 13px;
+            color: var(--sub);
+            padding: 9px 0;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .path-list li:last-child {
+            border-bottom: none;
+        }
+
+        .path-list li::before {
+            content: '';
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            background: var(--teal);
+            flex-shrink: 0;
+        }
+
+        .path-cta {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--teal);
+            padding-top: 16px;
+            border-top: 1px solid var(--border);
+            width: 100%;
+        }
+
+        .path-cta svg {
+            width: 14px;
+            height: 14px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 2;
+            transition: transform 0.2s;
+        }
+
+        .path-card:hover .path-cta svg {
+            transform: translateX(4px);
+        }
+
+        /* ─── ABOUT ─── */
+        .about {
+            border-top: 1px solid var(--border);
+            padding: 100px 0;
+        }
+
+        .about-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 80px;
+            align-items: start;
+        }
+
+        .about-title {
+            font-family: 'IBM Plex Sans', sans-serif;
+            font-size: clamp(32px, 4vw, 52px);
+            font-weight: 300;
+            letter-spacing: -0.025em;
+            line-height: 1.1;
+            margin-bottom: 28px;
+        }
+
+        .about-title strong {
+            font-weight: 600;
+        }
+
+        .about-body {
+            font-size: 16px;
+            color: var(--sub);
+            line-height: 1.7;
+        }
+
+        .about-body p+p {
+            margin-top: 18px;
+        }
+
+        .principles {
+            list-style: none;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .principles li {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 16px 24px;
+            border-bottom: 1px solid var(--border);
+            font-size: 15px;
+            color: var(--sub);
+        }
+
+        .principles li:last-child {
+            border-bottom: none;
+        }
+
+        .principles .n {
+            font-family: 'IBM Plex Sans', sans-serif;
+            font-weight: 500;
+            font-size: 11px;
+            color: var(--teal);
+            letter-spacing: 0.1em;
+            width: 24px;
+            flex-shrink: 0;
+        }
+
+        /* ─── ECOSYSTEM ─── */
+        .ecosystem {
+            background: var(--light);
+            border-top: 1px solid var(--border);
+            padding: 80px 0;
+        }
+
+        .ecosystem h2 {
+            font-family: 'IBM Plex Sans', sans-serif;
+            font-size: clamp(28px, 3.5vw, 44px);
+            font-weight: 300;
+            letter-spacing: -0.02em;
+            margin-bottom: 8px;
+        }
+
+        .ecosystem h2 strong {
+            font-weight: 600;
+        }
+
+        .ecosystem-sub {
+            font-size: 16px;
+            color: var(--gray);
+            margin-bottom: 48px;
+        }
+
+        .eco-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            overflow: hidden;
+            background: var(--border);
+            gap: 1px;
+        }
+
+        .eco-link {
+            background: var(--white);
+            padding: 28px 24px;
+            text-decoration: none;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            transition: background 0.15s;
+        }
+
+        .eco-link:hover {
+            background: rgba(31, 163, 163, 0.04);
+        }
+
+        .eco-link .el {
+            font-family: 'IBM Plex Sans', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--blue);
+        }
+
+        .eco-link .eu {
+            font-size: 11px;
+            color: var(--teal);
+            margin-bottom: 4px;
+        }
+
+        .eco-link .ed {
+            font-size: 12px;
+            color: var(--gray);
+            line-height: 1.5;
+        }
+
+        .eco-link .ea {
+            margin-top: 14px;
+            font-size: 16px;
+            color: var(--border);
+            transition: color 0.15s, transform 0.15s;
+        }
+
+        .eco-link:hover .ea {
+            color: var(--teal);
+            transform: translate(2px, -2px);
+        }
+
+        /* ─── FOOTER ─── */
+        footer {
+            background: var(--blue);
+            padding: 40px 0;
+        }
+
+        .footer-inner {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .footer-brand {
+            font-family: 'IBM Plex Sans', sans-serif;
+            font-size: 14px;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 24px;
+            flex-wrap: wrap;
+        }
+
+        .footer-links a {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.38);
+            text-decoration: none;
+            transition: color 0.15s;
+        }
+
+        .footer-links a:hover {
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .footer-promise {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.25);
+            font-style: italic;
+        }
+
+        /* ─── RESPONSIVE ─── */
+        @media (max-width: 960px) {
+            .paths-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .about-grid {
+                grid-template-columns: 1fr;
+                gap: 48px;
+            }
+
+            .eco-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .topbar .topbar-links {
+                display: none;
+            }
+
+            .nav-links {
+                display: none;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 0 20px;
+            }
+
+            .hero {
+                padding: 64px 0 56px;
+            }
+
+            .paths,
+            .about {
+                padding: 64px 0;
+            }
+
+            .eco-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .hero-meta-sep {
+                display: none;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- TOPBAR -->
+    <div class="topbar">
+        <div class="container">
+            <span>Stablecoin Foundation · Open payment infrastructure</span>
+            <div class="topbar-links">
+                <a href="https://stablecoinstack.org">stablecoinstack.org</a>
+                <a href="https://specifications.stablecoinstack.org">Specifications</a>
+                <a href="https://members.stablecoinstack.org/">Members</a>
+                <a href="https://stablecoinstack.org/donate">Donate</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- NAV -->
+    <nav>
+        <div class="container">
+            <div class="nav-inner">
+                <a href="/" class="nav-logo">
+                    <svg class="logo-icon" viewBox="0 0 32 32" fill="none">
+                        <rect x="4" y="21" width="24" height="5" rx="1" fill="#0B1F33" />
+                        <rect x="4" y="13.5" width="24" height="5" rx="1" fill="#0B1F33" opacity="0.45" />
+                        <rect x="4" y="6" width="24" height="5" rx="1" fill="#0B1F33" opacity="0.18" />
+                    </svg>
+                    <span class="logo-wordmark">
+                        Stablecoin Stack
+                        <span class="pipe">|</span>
+                        <span class="sub">Reference Implementation</span>
+                    </span>
+                </a>
+                <ul class="nav-links">
+                    <li><a href="https://stablecoinstack.org">Foundation</a></li>
+                    <li><a href="https://specifications.stablecoinstack.org">Specifications</a></li>
+                    <li><a href="https://members.stablecoinstack.org/">Members</a></li>
+                    <li><a href="https://github.com/Stablecoin-Stack/specs/blob/main/CONTRIBUTING.md">Contribute</a>
+                    </li>
+                    <li><a href="https://stablecoinstack.org/donate" class="donate">Donate</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- HERO -->
+    <section class="hero">
+        <div class="container">
+            <div class="hero-kicker">Reference Implementation</div>
+            <h1 class="hero-title">
+                Pay and get paid.<br />
+                <strong>No middlemen.<br />No lock-in.</strong>
+            </h1>
+            <p class="hero-body">
+                This is a live demonstration of how stablecoin payments work in practice —
+                for the people sending money, the businesses accepting it,
+                and the institutions processing it.
+            </p>
+            <div class="hero-meta">
+                <div class="hero-meta-item">
+                    <span class="num">3</span>
+                    <span class="lbl">Roles to explore</span>
+                </div>
+                <div class="hero-meta-sep"></div>
+                <div class="hero-meta-item">
+                    <span class="num">Live</span>
+                    <span class="lbl">Test environment</span>
+                </div>
+                <div class="hero-meta-sep"></div>
+                <div class="hero-meta-item">
+                    <span class="num">Open</span>
+                    <span class="lbl">Standard &amp; source</span>
+                </div>
+                <div class="hero-meta-sep"></div>
+                <div class="hero-meta-item">
+                    <span class="num">Free</span>
+                    <span class="lbl">To use and integrate</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- STATUS -->
+    <div class="status-strip">
+        <div class="container">
+            <div class="status-inner">
+                <div class="status-dot"></div>
+                <span>Test environment active</span>
+                <div class="status-sep"></div>
+                <p>Full walkthroughs launching shortly. &ensp;<a href="https://specifications.stablecoinstack.org">Read
+                        the technical specification →</a></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- PATHS -->
+    <section class="paths">
+        <div class="container">
+            <div class="paths-heading">
+                <div class="section-kicker">Choose your path</div>
+                <h2>Who are you<br /><strong>in this transaction?</strong></h2>
+                <p>
+                    Pick the role that matches how you interact with payments.
+                    Each walkthrough shows the full experience from your side.
+                </p>
+            </div>
+
+            <div class="paths-grid">
+
+                <!-- MERCHANT -->
+                <a href="#" class="path-card">
+                    <div class="path-num">Path 01</div>
+                    <div class="path-icon-box">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M3 9l1-6h16l1 6" />
+                            <path d="M3 9a3 3 0 006 0m0 0a3 3 0 006 0m0 0a3 3 0 006 0" />
+                            <path d="M5 9v12h14V9" />
+                            <rect x="9" y="14" width="6" height="7" rx="0.5" />
+                        </svg>
+                    </div>
+                    <h3 class="path-title">Merchants</h3>
+                    <p class="path-who">I run a business and want to accept payments</p>
+                    <p class="path-desc">
+                        See how to start accepting stablecoin payments — online or at the counter.
+                        Follow a real transaction from the moment a customer pays to when the money lands in your
+                        account.
+                    </p>
+                    <ul class="path-list">
+                        <li>Create a payment request in seconds</li>
+                        <li>Let customers pay by QR code or link</li>
+                        <li>Get confirmed when the money arrives</li>
+                        <li>Issue refunds when needed</li>
+                    </ul>
+                    <span class="path-cta">
+                        See the merchant walkthrough
+                        <svg viewBox="0 0 24 24">
+                            <path d="M5 12h14M12 5l7 7-7 7" />
+                        </svg>
+                    </span>
+                </a>
+
+                <!-- PAYER -->
+                <a href="#" class="path-card">
+                    <div class="path-num">Path 02</div>
+                    <div class="path-icon-box">
+                        <svg viewBox="0 0 24 24">
+                            <rect x="5" y="2" width="14" height="20" rx="2" />
+                            <path d="M9 7h6M9 11h4" />
+                            <circle cx="12" cy="17" r="1" fill="#0B1F33" />
+                        </svg>
+                    </div>
+                    <h3 class="path-title">Payers</h3>
+                    <p class="path-who">I want to pay for something using stablecoins</p>
+                    <p class="path-desc">
+                        See what it looks like to pay with stablecoins from your phone or wallet.
+                        Fast, direct, and no more entering card numbers or waiting for bank approvals.
+                    </p>
+                    <ul class="path-list">
+                        <li>Connect your wallet in one step</li>
+                        <li>Approve a payment in seconds</li>
+                        <li>Pay in the currency you hold</li>
+                        <li>Keep a receipt for every transaction</li>
+                    </ul>
+                    <span class="path-cta">
+                        See the payer walkthrough
+                        <svg viewBox="0 0 24 24">
+                            <path d="M5 12h14M12 5l7 7-7 7" />
+                        </svg>
+                    </span>
+                </a>
+
+                <!-- ACQUIRER -->
+                <a href="#" class="path-card">
+                    <div class="path-num">Path 03</div>
+                    <div class="path-icon-box">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M3 10L12 3l9 7" />
+                            <path d="M5 10v8M19 10v8M3 18h18" />
+                            <path d="M9 10v8M15 10v8" />
+                        </svg>
+                    </div>
+                    <h3 class="path-title">Acquirers</h3>
+                    <p class="path-who">I process or settle payments on behalf of others</p>
+                    <p class="path-desc">
+                        See how the acquiring side works: routing transactions, batching settlements,
+                        and connecting to compliance checks — all through a clean, documented API.
+                    </p>
+                    <ul class="path-list">
+                        <li>Route transactions to the right channel</li>
+                        <li>Settle batches on your schedule</li>
+                        <li>Plug in your compliance and KYC layer</li>
+                        <li>Export reports and reconcile automatically</li>
+                    </ul>
+                    <span class="path-cta">
+                        See the acquirer walkthrough
+                        <svg viewBox="0 0 24 24">
+                            <path d="M5 12h14M12 5l7 7-7 7" />
+                        </svg>
+                    </span>
+                </a>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- ABOUT -->
+    <section class="about">
+        <div class="container">
+            <div class="about-grid">
+                <div>
+                    <div class="section-kicker" style="margin-bottom: 20px;">About this</div>
+                    <h2 class="about-title">
+                        Not a product.<br />
+                        <strong>Infrastructure.</strong>
+                    </h2>
+                    <div class="about-body">
+                        <p>
+                            This demonstration is maintained by the Stablecoin Foundation —
+                            a neutral, non-profit organisation that governs the open payment standard
+                            behind everything you see here.
+                        </p>
+                        <p>
+                            No company owns it. No vendor controls it. Anyone can integrate it,
+                            audit it, or build on top of it. That is the point.
+                        </p>
+                        <p>
+                            If you want to understand the technical specification, join as a member,
+                            contribute to the standard, or support the foundation's work, the links below will get you
+                            there.
+                        </p>
+                    </div>
+                </div>
+                <div>
+                    <div class="section-kicker" style="margin-bottom: 20px;">How we work</div>
+                    <ul class="principles">
+                        <li><span class="n">01</span> Infrastructure, not products</li>
+                        <li><span class="n">02</span> Neutral before innovative</li>
+                        <li><span class="n">03</span> Clarity over persuasion</li>
+                        <li><span class="n">04</span> Built to last, not to trend</li>
+                        <li><span class="n">05</span> Trust, earned — not assumed</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ECOSYSTEM -->
+    <section class="ecosystem">
+        <div class="container">
+            <div class="section-kicker">Foundation resources</div>
+            <h2>Everything in<br /><strong>one place</strong></h2>
+            <p class="ecosystem-sub">All the foundation's public resources, in one row.</p>
+            <div class="eco-grid">
+                <a href="https://stablecoinstack.org" class="eco-link">
+                    <span class="el">Foundation</span>
+                    <span class="eu">stablecoinstack.org</span>
+                    <span class="ed">Who we are, what we govern, and why.</span>
+                    <span class="ea">↗</span>
+                </a>
+                <a href="https://specifications.stablecoinstack.org" class="eco-link">
+                    <span class="el">Specifications</span>
+                    <span class="eu">specifications.stablecoinstack.org</span>
+                    <span class="ed">The full technical standard. Open to read and review.</span>
+                    <span class="ea">↗</span>
+                </a>
+                <a href="https://members.stablecoinstack.org/" class="eco-link">
+                    <span class="el">Members</span>
+                    <span class="eu">members.stablecoinstack.org</span>
+                    <span class="ed">Who shapes the standard and how to join them.</span>
+                    <span class="ea">↗</span>
+                </a>
+                <a href="https://github.com/Stablecoin-Stack/specs/blob/main/CONTRIBUTING.md" class="eco-link">
+                    <span class="el">Contribute</span>
+                    <span class="eu">stablecoinstack.org/contribute</span>
+                    <span class="ed">Help build and improve the standard.</span>
+                    <span class="ea">↗</span>
+                </a>
+                <a href="https://stablecoinstack.org/donate" class="eco-link">
+                    <span class="el">Donate</span>
+                    <span class="eu">stablecoinstack.org/donate</span>
+                    <span class="ed">Fund open infrastructure that no one owns.</span>
+                    <span class="ea">↗</span>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer>
+        <div class="container">
+            <div class="footer-inner">
+                <span class="footer-brand">Stablecoin Stack Foundation</span>
+                <div class="footer-links">
+                    <a href="https://stablecoinstack.org">Foundation</a>
+                    <a href="https://specifications.stablecoinstack.org">Specifications</a>
+                    <a href="https://members.stablecoinstack.org/">Members</a>
+                    <a href="https://github.com/Stablecoin-Stack/specs/blob/main/CONTRIBUTING.md">Contribute</a>
+                    <a href="https://stablecoinstack.org/donate">Donate</a>
+                </div>
+                <span class="footer-promise">Open standards. Neutral governance. Real-world adoption.</span>
+            </div>
+        </div>
+    </footer>
+
+</body>
+
+</html>
